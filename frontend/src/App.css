@@ -1,0 +1,24 @@
+.App {
+  min-height: 100vh;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.tabs .btn {
+  min-width: 120px;
+}
+
+@media (max-width: 768px) {
+  .tabs {
+    flex-direction: column;
+  }
+  
+  .tabs .btn {
+    width: 100%;
+  }
+}
