@@ -4,6 +4,9 @@ import StationList from './components/StationList';
 import StationForm from './components/StationForm';
 import SearchStations from './components/SearchStations';
 import Statistics from './components/Statistics';
+import Login from './components/Login';
+import Register from './components/Register';
+import { setupAxiosInterceptors, isAuthenticated, logout, getCurrentUserEmail } from './utils/auth';
 import './App.css';
 
 function App() {
@@ -14,10 +17,41 @@ function App() {
   const [activeTab, setActiveTab] = useState('list');
   const [editingStation, setEditingStation] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
+  const [showLogin, setShowLogin] = useState(true);
+  const [userEmail, setUserEmail] = useState(getCurrentUserEmail());
 
   useEffect(() => {
-    fetchStations();
-  }, [refreshTrigger]);
+    setupAxiosInterceptors();
+    if (isLoggedIn) {
+      fetchStations();
+    }
+  }, [refreshTrigger, isLoggedIn]);
+
+  const handleLogin = (token, email) => {
+    setIsLoggedIn(true);
+    setUserEmail(email);
+    setShowLogin(true);
+  };
+
+  const handleRegister = () => {
+    setShowLogin(true);
+    alert('Registro exitoso. Por favor inicia sesión.');
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsLoggedIn(false);
+    setUserEmail(null);
+  };
+
+  const switchToRegister = () => {
+    setShowLogin(false);
+  };
+
+  const switchToLogin = () => {
+    setShowLogin(true);
+  };
 
   const fetchStations = async () => {
     try {
@@ -94,19 +128,42 @@ function App() {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  if (loading) {
-    return <div className="loading">Cargando estaciones...</div>;
+  // Show authentication forms if not logged in
+  if (!isLoggedIn) {
+    return (
+      <div className="App">
+        <header className="header">
+          <h1>Sistema de Gestión de Estaciones de Carga</h1>
+          <p>Inicia sesión para administrar las estaciones de carga</p>
+        </header>
+        
+        <div className="container">
+          {showLogin ? (
+            <Login onLogin={handleLogin} onSwitchToRegister={switchToRegister} />
+          ) : (
+            <Register onRegister={handleRegister} onSwitchToLogin={switchToLogin} />
+          )}
+        </div>
+      </div>
+    );
   }
 
-  if (error) {
-    return <div className="error">{error}</div>;
-  }
-
+  // Show main application if logged in
   return (
     <div className="App">
       <header className="header">
-        <h1>Sistema de Gestión de Estaciones de Carga</h1>
-        <p>Administra y monitorea las estaciones de carga para vehículos eléctricos</p>
+        <div className="header-content">
+          <div>
+            <h1>Sistema de Gestión de Estaciones de Carga</h1>
+            <p>Administra y monitorea las estaciones de carga para vehículos eléctricos</p>
+          </div>
+          <div className="user-info">
+            <span>Bienvenido, {userEmail}</span>
+            <button onClick={handleLogout} className="btn btn-secondary">
+              Cerrar Sesión
+            </button>
+          </div>
+        </div>
       </header>
 
       <div className="container">
